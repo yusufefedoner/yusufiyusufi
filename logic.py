@@ -1,5 +1,7 @@
 import sqlite3
 import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+import cartopy.feature as cfeature
 
 DB_NAME = "cities.db"
 
@@ -15,7 +17,6 @@ def get_city_coordinates(city_name):
 
     result = cursor.fetchone()
     conn.close()
-
     return result
 
 
@@ -30,21 +31,28 @@ def get_all_cities():
     return results
 
 
-def create_graph(cities):
-    plt.figure()
+def create_graph(cities, marker_color="red"):
+    fig = plt.figure(figsize=(12, 6))
+    ax = plt.axes(projection=ccrs.PlateCarree())
 
-    # Dünya sınırları
-    plt.xlim(-180, 180)
-    plt.ylim(-90, 90)
+    # Kara ve deniz renkleri
+    ax.add_feature(cfeature.OCEAN, facecolor="lightblue")
+    ax.add_feature(cfeature.LAND, facecolor="lightgreen")
 
-    plt.xlabel("Longitude")
-    plt.ylabel("Latitude")
-    plt.title("Selected Cities")
+    # Coğrafi detaylar
+    ax.add_feature(cfeature.BORDERS)
+    ax.add_feature(cfeature.COASTLINE)
+    ax.add_feature(cfeature.RIVERS)
+    ax.add_feature(cfeature.LAKES)
+    ax.add_feature(cfeature.MOUNTAIN_RANGES)
+
+    ax.set_global()
+    ax.set_title("World Cities Map")
 
     for city in cities:
         name, lat, lon = city
-        plt.scatter(lon, lat)
-        plt.text(lon, lat, name)
+        ax.scatter(lon, lat, color=marker_color, s=60, transform=ccrs.PlateCarree())
+        ax.text(lon, lat, name, transform=ccrs.PlateCarree())
 
     file_name = "map.png"
     plt.savefig(file_name)
